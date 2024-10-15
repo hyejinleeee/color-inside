@@ -1,6 +1,9 @@
 <img src="https://github.com/user-attachments/assets/266b33ae-185b-4e6d-983b-b94f6ec5cc3c" width="60%"/>
 
 ### [💚 배포 링크](https://color-diary.vercel.app)
+테스트 로그인
+id: hyejin@naver.com
+pw: popopo123
 
 ### [💛 브로셔](https://www.notion.so/teamsparta/B10-Color-Inside-13af862d0aca467b9cc2ad7fdad854ec)
 
