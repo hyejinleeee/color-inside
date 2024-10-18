@@ -22,34 +22,12 @@ import StickerPicker from './StickerPicker';
 import Sticker from './Sticker';
 import CircleUI from './CircleUI';
 import { v4 as uuidv4 } from 'uuid';
-import CalmSticker from './assets/diary-stickers/CalmSticker';
-import JoySticker from './assets/diary-stickers/JoySticker';
-import LethargySticker from './assets/diary-stickers/LethargySticker';
-import AnxietySticker from './assets/diary-stickers/AnxietySticker';
-import HopeSticker from './assets/diary-stickers/HopeSticker';
-import AngerSticker from './assets/diary-stickers/AngerSticker';
-import SadnessSticker from './assets/diary-stickers/SadnessSticker';
 import SmilePlusIcon from './assets/SmilePlusIcon';
 import SaveIcon from './assets/SaveIcon';
 import XIconBlack from './assets/XIconBlack';
 import { createClient } from '@/utils/supabase/client';
 import TipBubble from './assets/TipBubble';
-import SpringFlowerSticker from './assets/diary-stickers/SpringFlowerSticker';
-import WinterFlowerSticker from './assets/diary-stickers/WinterFlowerSticker';
-import SummerFlowerSticker from './assets/diary-stickers/SummerFlowerSticker';
-import FallFlowerSticker from './assets/diary-stickers/FallFlowerSticker';
-import SeedSticker from './assets/diary-stickers/SeedSticker';
-import LogoSticker from './assets/diary-stickers/LogoSticker';
-import ColorInsideTextSticker from './assets/diary-stickers/ColorInsideTextSticker';
-import HappyDayTextSticker from './assets/diary-stickers/HappyDayTextSticker';
-import DoAnythingSticker from './assets/diary-stickers/DoAnythingSticker';
-import TextSeedSticker from './assets/diary-stickers/TextSeedSticker';
-import TextGoodJobSticker from './assets/diary-stickers/TextGoodJobSticker';
-import NoThoughtSticker from './assets/diary-stickers/NoThoughtSticker';
-import SpecialDaySticker from './assets/diary-stickers/SpecialDaySticker';
-import SpecialMeSticker from './assets/diary-stickers/SpecialMeSticker';
-import PreciousMeSticker from './assets/diary-stickers/PreciousMeSticker';
-import NaSticker from './assets/diary-stickers/NaSticker';
+import { fetchStickers } from '@/apis/stickers';
 
 type StickerType = {
   id: string;
@@ -61,32 +39,6 @@ type StickerDataType = {
   id: string;
   component: string;
   position: { x: number; y: number };
-};
-
-const componentMapper: Record<string, JSX.Element> = {
-  SpringFlowerSticker: <SpringFlowerSticker />,
-  WinterFlowerSticker: <WinterFlowerSticker />,
-  SummerFlowerSticker: <SummerFlowerSticker />,
-  FallFlowerSticker: <FallFlowerSticker />,
-  AnxietySticker: <AnxietySticker />,
-  SadnessSticker: <SadnessSticker />,
-  SeedSticker: <SeedSticker />,
-  JoySticker: <JoySticker />,
-  LogoSticker: <LogoSticker />,
-  HopeSticker: <HopeSticker />,
-  LethargySticker: <LethargySticker />,
-  AngerSticker: <AngerSticker />,
-  CalmSticker: <CalmSticker />,
-  ColorInsideTextSticker: <ColorInsideTextSticker />,
-  HappyDayTextSticker: <HappyDayTextSticker />,
-  DoAnythingSticker: <DoAnythingSticker />,
-  TextSeedSticker: <TextSeedSticker />,
-  TextGoodJobSticker: <TextGoodJobSticker />,
-  NoThoughtSticker: <NoThoughtSticker />,
-  SpecialDaySticker: <SpecialDaySticker />,
-  SpecialMeSticker: <SpecialMeSticker />,
-  PreciousMeSticker: <PreciousMeSticker />,
-  NaSticker: <NaSticker />
 };
 
 const DiaryContainer = () => {
@@ -177,6 +129,27 @@ const DiaryContainer = () => {
     }
   };
 
+  //유저 있으면 서버에서 다이어리랑, 스티커 가지고 오기
+  const {
+    data: diary,
+    error,
+    isPending: isQueryLoading
+  } = useQuery({
+    queryKey: ['diary', diaryId],
+    queryFn: () => fetchDiary(diaryId),
+    enabled: !!userId
+  });
+
+  const {
+    data: rStickers,
+    error: stickerError,
+    isPending: isStickersQueryLoading
+  } = useQuery({
+    queryKey: ['stickers', diaryId],
+    queryFn: () => fetchStickers(diaryId),
+    enabled: !!userId
+  });
+
   useEffect(() => {
     const readDiary = (): void => {
       if (user) {
@@ -195,45 +168,11 @@ const DiaryContainer = () => {
       setIsLoading(false);
     };
 
-    const fetchStickers = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('diaryStickers')
-          .select('stickersData')
-          .eq('diaryId', diaryId)
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          throw error;
-        }
-
-        if (data && Array.isArray(data.stickersData)) {
-          const stickersFromDB = (data.stickersData as StickerDataType[]).map((sticker) => ({
-            ...sticker,
-            component: componentMapper[sticker.component as keyof typeof componentMapper] || null
-          }));
-
-          setStickers(stickersFromDB);
-        }
-      } catch (error) {
-        console.error('Error fetching stickers:', error);
-      }
-    };
-
     readDiary();
-
-    fetchStickers();
-  }, [router, diaryId, setColor, setTags, setContent, setImg]);
-
-  const {
-    data: diary,
-    error,
-    isPending: isQueryLoading
-  } = useQuery({
-    queryKey: ['diary', diaryId],
-    queryFn: () => fetchDiary(diaryId),
-    enabled: !!userId
-  });
+    if (rStickers) {
+      setStickers(rStickers);
+    }
+  }, [router, diaryId, setColor, setTags, setContent, setImg, rStickers]);
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -259,7 +198,7 @@ const DiaryContainer = () => {
   }
 
   if (userId) {
-    if (isQueryLoading) {
+    if (isQueryLoading || isStickersQueryLoading) {
       return (
         <div>
           <LoadingSpinner />
@@ -345,7 +284,7 @@ const DiaryContainer = () => {
           className="relative flex flex-col md:flex md:flex-row items-center justify-center gap-8px-col-m md:gap-16px-row md:w-720px-row md:h-807px-col rounded-[32px] md:border-4 md:border-[#E6D3BC] md:py-56px-col md:pr-56px-row md:pl-16px-row "
           style={{ backgroundColor: diaryData.color }}
         >
-          {stickers.map((sticker) => (
+          {stickers?.map((sticker) => (
             <Sticker
               key={sticker.id}
               sticker={sticker}

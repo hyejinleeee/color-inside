@@ -19,7 +19,7 @@ const Header = () => {
   const pathname = usePathname();
   const router = useRouter();
 
-  const { user, isLoading } = useAuth();
+  const { user, isPending } = useAuth();
 
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -32,7 +32,7 @@ const Header = () => {
       const { data } = await axios.get('/api/auth/me/information');
       return data[0];
     },
-    enabled: !isLoading
+    enabled: !isPending
   });
 
   useEffect(() => {
@@ -92,7 +92,7 @@ const Header = () => {
         <button onClick={toggleMusic} className="w-6 h-6">
           {isPlaying ? <MusicOnIcon /> : <MusicOffIcon />}
         </button>
-        {!isLoading && user ? (
+        {!isPending && user ? (
           <Link href={'/my-page'} onClick={handleClick}>
             <div className="relative md:w-10 md:h-10 w-6 h-6 aspect-square">
               <Image

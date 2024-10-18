@@ -35,7 +35,7 @@ const WriteForm = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
-  const date = params.id as string;
+  const date = params.date as string;
   const diaryId = params.id as string;
 
   const toast = useToast();

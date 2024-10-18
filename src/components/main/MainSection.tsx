@@ -23,7 +23,7 @@ import useGetInitialValue from '@/hooks/useGetInitialValue';
 const MainSection = () => {
   const today = new Date();
   const router = useRouter();
-  const { user, isLoading } = useAuth();
+  const { user, isPending } = useAuth();
   const getInitialValue = useGetInitialValue();
   const { queryString, makeQueryString } = useMakeQueryString();
   const [date, setDate] = useState<Date>(getInitialValue('date') as Date);
@@ -51,7 +51,7 @@ const MainSection = () => {
         return localList;
       }
     },
-    enabled: !isLoading
+    enabled: !isPending
   });
 
   useEffect(() => {
