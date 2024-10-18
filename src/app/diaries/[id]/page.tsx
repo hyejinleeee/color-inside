@@ -1,4 +1,4 @@
-import DiaryContainer from '@/components/diary/DiaryContainer';
+import ConditionalDiary from '@/components/diary/ConditionalDiary';
 import { isValidUUID } from '@/utils/paramsValidation';
 import { notFound } from 'next/navigation';
 
@@ -7,7 +7,7 @@ const DiaryPage = ({ params }: { params: { id: string } }) => {
     notFound();
   }
 
-  return <DiaryContainer />;
+  return <ConditionalDiary />;
 };
 
 export default DiaryPage;

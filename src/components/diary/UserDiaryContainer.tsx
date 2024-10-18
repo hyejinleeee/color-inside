@@ -1,11 +1,8 @@
 'use client';
 
 import { fetchDiary } from '@/apis/diary';
-import useAuth from '@/hooks/useAuth';
 import { useModal } from '@/providers/modal.context';
 import { useToast } from '@/providers/toast.context';
-import { Diary } from '@/types/diary.type';
-import { deleteFromLocal } from '@/utils/diaryLocalStorage';
 import useZustandStore from '@/zustand/zustandStore';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
@@ -41,12 +38,11 @@ type StickerDataType = {
   position: { x: number; y: number };
 };
 
-const DiaryContainer = () => {
+const UserDiaryContainer = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const params = useParams();
   const diaryId = params.id as string;
-  const supabase = createClient();
+  const searchParams = useSearchParams();
 
   const form = searchParams.get('form');
   const YYMM = searchParams.get('YYMM');
@@ -54,12 +50,10 @@ const DiaryContainer = () => {
   const toast = useToast();
   const modal = useModal();
 
-  const { user } = useAuth();
   const queryClient = useQueryClient();
+  const supabase = createClient();
 
   const { setColor, setTags, setContent, setImg, setIsDiaryEditMode } = useZustandStore();
-  const [localDiary, setLocalDiary] = useState<Diary | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [stickers, setStickers] = useState<StickerType[]>([]);
   const [isPickerVisible, setIsPickerVisible] = useState<boolean>(false);
   const [isTipVisible, setIsTipVisible] = useState(true);
@@ -84,8 +78,7 @@ const DiaryContainer = () => {
     isPending: isQueryLoading
   } = useQuery({
     queryKey: ['diaries', diaryId],
-    queryFn: () => fetchDiary(diaryId),
-    enabled: !!user
+    queryFn: () => fetchDiary(diaryId)
   });
 
   const {
@@ -94,28 +87,10 @@ const DiaryContainer = () => {
     isPending: isStickersQueryLoading
   } = useQuery({
     queryKey: ['stickers', diaryId],
-    queryFn: () => fetchStickers(diaryId),
-    enabled: !!user
+    queryFn: () => fetchStickers(diaryId)
   });
 
   useEffect(() => {
-    const readDiary = (): void => {
-      if (!user) {
-        const savedDiaries = JSON.parse(localStorage.getItem('localDiaries') || '[]');
-        const foundDiary = savedDiaries.find((diary: Diary) => diary.diaryId === diaryId);
-        if (foundDiary) {
-          setLocalDiary(foundDiary);
-        } else {
-          toast.on({ label: '해당 다이어리를 찾을 수 없습니다.(비회원)' });
-          router.push('/');
-        }
-      }
-
-      setIsLoading(false);
-    };
-
-    readDiary();
-
     if (rStickers) {
       setStickers(rStickers);
     }
@@ -189,10 +164,10 @@ const DiaryContainer = () => {
         }
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stickers', diaryId] });
-      toast.on({ label: '스티커처리' });
-    },
+    // onSuccess: () => {
+    //   queryClient.invalidateQueries({ queryKey: ['stickers', diaryId] });
+    //   toast.on({ label: '스티커처리' });
+    // },
     onError: (error) => {
       console.error('Error saving stickers:', error);
       toast.on({ label: '스티커 저장 중 오류 발생' });
@@ -208,7 +183,7 @@ const DiaryContainer = () => {
     saveStickersMutation.mutate(stickersToSave);
   };
 
-  if (isLoading) {
+  if (isQueryLoading || isStickersQueryLoading) {
     return (
       <div>
         <LoadingSpinner />
@@ -216,17 +191,7 @@ const DiaryContainer = () => {
     );
   }
 
-  if (user) {
-    if (isQueryLoading || isStickersQueryLoading) {
-      return (
-        <div>
-          <LoadingSpinner />
-        </div>
-      );
-    }
-  }
-
-  const diaryData = user ? diary : localDiary;
+  const diaryData = diary;
 
   if (error) {
     return <p>본인이 쓴 글이 아님</p>;
@@ -254,22 +219,15 @@ const DiaryContainer = () => {
   //다이어리 삭제 시 스티커가 있으면 스터커도 함께 삭제
   const confirmDelete = async (): Promise<void> => {
     try {
-      if (user) {
-        if (stickers.length > 0) {
-          const { error: deleteStickersError } = await supabase.from('diaryStickers').delete().eq('diaryId', diaryId);
+      if (stickers.length > 0) {
+        const { error: deleteStickersError } = await supabase.from('diaryStickers').delete().eq('diaryId', diaryId);
 
-          if (deleteStickersError) {
-            throw deleteStickersError;
-          }
+        if (deleteStickersError) {
+          throw deleteStickersError;
         }
-
-        await deleteMutation.mutateAsync();
-      } else {
-        deleteFromLocal(diaryId);
-        toast.on({ label: '다이어리가 삭제되었습니다' });
-
-        router.replace(`/?form=${form}&YYMM=${YYMM}`);
       }
+
+      await deleteMutation.mutateAsync();
     } catch (error) {
       console.error('Error deleting diary or stickers:', error);
       toast.on({ label: '삭제 중 오류가 발생했습니다.' });
@@ -321,34 +279,31 @@ const DiaryContainer = () => {
                   <TextButton onClick={handleBackward}>뒤로가기</TextButton>
                 </div>
                 <div className="relative flex gap-12px-row-m md:gap-8px-row">
-                  {user && (
-                    <>
-                      <button
-                        onClick={() => {
-                          setIsPickerVisible(true);
-                          setIsDeleteVisible(true);
-                        }}
-                      >
-                        <SmilePlusIcon />
-                      </button>
-                      {isTipVisible && (
-                        <div
-                          onClick={() => setIsTipVisible(false)}
-                          className="absolute -top-12 -right-5 cursor-pointer z-50"
-                        >
-                          <TipBubble />
-                        </div>
-                      )}
-                      <button
-                        onClick={() => {
-                          handleSaveStickers();
-                          setIsDeleteVisible(false);
-                        }}
-                      >
-                        <SaveIcon />
-                      </button>
-                    </>
+                  <button
+                    onClick={() => {
+                      setIsPickerVisible(true);
+                      setIsDeleteVisible(true);
+                    }}
+                  >
+                    <SmilePlusIcon />
+                  </button>
+                  {isTipVisible && (
+                    <div
+                      onClick={() => setIsTipVisible(false)}
+                      className="absolute -top-12 -right-5 cursor-pointer z-50"
+                    >
+                      <TipBubble />
+                    </div>
                   )}
+                  <button
+                    onClick={() => {
+                      handleSaveStickers();
+                      setIsDeleteVisible(false);
+                    }}
+                  >
+                    <SaveIcon />
+                  </button>
+                  <div />
                 </div>
               </div>
               <div className="items-start justify-start ">
@@ -390,4 +345,4 @@ const DiaryContainer = () => {
   );
 };
 
-export default DiaryContainer;
+export default UserDiaryContainer;

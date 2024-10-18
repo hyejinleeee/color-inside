@@ -13,7 +13,7 @@ const zustandStore = create<tZustandStore>()((set) => ({
   setColor: (color: string) => set({ color }),
   setTags: (tags: string[]) => set({ tags }),
   setContent: (content: string) => set({ content }),
-  setImg: (img: File | null) => set({ img }),
+  setImg: (img: File | null | string) => set({ img }),
   setTestResult: (testResult: TestResultType | null) => set({ testResult }),
   setIsDiaryEditMode: (isDiaryEditMode: boolean) => set({ isDiaryEditMode }),
   setHasTestResult: (hasTestResult: boolean) => set({ hasTestResult })
