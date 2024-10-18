@@ -7,7 +7,7 @@ import { useToast } from '@/providers/toast.context';
 import { Diary } from '@/types/diary.type';
 import { deleteFromLocal } from '@/utils/diaryLocalStorage';
 import useZustandStore from '@/zustand/zustandStore';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -55,6 +55,7 @@ const DiaryContainer = () => {
   const modal = useModal();
 
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const { setColor, setTags, setContent, setImg, setIsDiaryEditMode } = useZustandStore();
   const [localDiary, setLocalDiary] = useState<Diary | null>(null);
@@ -135,7 +136,7 @@ const DiaryContainer = () => {
     error,
     isPending: isQueryLoading
   } = useQuery({
-    queryKey: ['diary', diaryId],
+    queryKey: ['diaries', diaryId],
     queryFn: () => fetchDiary(diaryId),
     enabled: !!userId
   });
@@ -179,6 +180,8 @@ const DiaryContainer = () => {
       await axios.delete(`/api/diaries/${diaryId}`);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['diaries'] });
+      queryClient.invalidateQueries({ queryKey: ['diaries', diaryId] });
       toast.on({ label: '다이어리가 삭제되었습니다' });
 
       router.replace(`/?form=${form}&YYMM=${YYMM}`);
@@ -232,9 +235,10 @@ const DiaryContainer = () => {
     router.push(`/diaries/edit/${diaryId}`);
   };
 
+  //다이어리 삭제 시 스티커가 있으면 스터커도 함께 삭제
   const confirmDelete = async (): Promise<void> => {
     try {
-      if (userId) {
+      if (user) {
         if (stickers.length > 0) {
           const { error: deleteStickersError } = await supabase.from('diaryStickers').delete().eq('diaryId', diaryId);
 

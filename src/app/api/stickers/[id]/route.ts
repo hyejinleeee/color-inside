@@ -18,19 +18,11 @@ export const GET = async (request: NextRequest, { params }: { params: { id: stri
     }
 
     // 스티커 데이터 가져오기
-    const { data, error: stickerSelectError } = await supabase
-      .from('diaryStickers')
-      .select('stickersData')
-      .eq('diaryId', diaryId)
-      .single();
+    const { data } = await supabase.from('diaryStickers').select('stickersData').eq('diaryId', diaryId).single();
 
-    if (stickerSelectError) {
-      console.error('Error fetching stickers:', stickerSelectError);
-      return NextResponse.json({ error: 'Database Error: Unable to fetch stickers' }, { status: 500 });
-    }
-
+    // 스티커가 없을 때 빈 배열 반환
     if (!data) {
-      return NextResponse.json({ error: 'Stickers not found' }, { status: 404 });
+      return NextResponse.json([], { status: 200 });
     }
 
     // 스티커 데이터 처리
