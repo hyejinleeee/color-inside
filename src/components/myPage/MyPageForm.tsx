@@ -28,7 +28,7 @@ const MyPageForm = () => {
   const modal = useModal();
   const router = useRouter();
 
-  const { user, isLoading } = useAuth();
+  const { user, isPending: isAuthPending } = useAuth();
   const queryClient = useQueryClient();
 
   const [newNickname, setNewNickname] = useState<string>('');
@@ -165,7 +165,7 @@ const MyPageForm = () => {
     <div className="flex items-center justify-center mt-95px-col-m px-5 md:px-394px-row md:mt-307px-col">
       <div className="flex flex-col w-full md:w-[1128px] items-start justify-center self-stretch gap-32px-row-m md:gap-43px-row ">
         <div className="flex flex-col items-start md:flex-row md:items-center w-full md:gap-14">
-          {!isLoading && user ? (
+          {!isAuthPending && user ? (
             <div className="flex w-[160px] h-[160px] md:w-240px-row md:h-240px-row relative">
               {isLoadingImage ? (
                 <div className="absolute inset-0 flex items-center justify-center rounded-full">
@@ -206,7 +206,7 @@ const MyPageForm = () => {
               />
             </div>
           )}
-          {!isLoading && user ? (
+          {!isAuthPending && user ? (
             <div className="flex flex-col justify-center items-start gap-[24px] mt-4">
               <div className="flex flex-col items-start gap-4 md:gap-4">
                 <div className="flex items-center gap-2 md:gap-2 text-[14px] md:text-18px">
@@ -270,7 +270,7 @@ const MyPageForm = () => {
             </div>
           )}
         </div>
-        {!isLoading && user ? (
+        {!isAuthPending && user ? (
           <div className="flex justify-between items-center self-stretch border-t border-[#080808] ">
             <div className="flex items-center mt-4 md:mt-[24px]">
               <Button priority="secondary" icon={<Logout />} size="lg" onClick={handleClickLogOut}>
