@@ -59,7 +59,6 @@ const DiaryContainer = () => {
 
   const { setColor, setTags, setContent, setImg, setIsDiaryEditMode } = useZustandStore();
   const [localDiary, setLocalDiary] = useState<Diary | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [stickers, setStickers] = useState<StickerType[]>([]);
   const [isPickerVisible, setIsPickerVisible] = useState<boolean>(false);
@@ -78,58 +77,6 @@ const DiaryContainer = () => {
     );
   };
 
-  const handleSaveStickers = async () => {
-    try {
-      const stickersToSave = stickers.map((sticker) => ({
-        ...sticker,
-        component: sticker.component.type.displayName as string
-      }));
-
-      const { data: existingStickerData, error: fetchError } = await supabase
-        .from('diaryStickers')
-        .select('id')
-        .eq('diaryId', diaryId)
-        .single();
-
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
-      }
-
-      if (stickersToSave.length === 0) {
-        if (existingStickerData) {
-          await supabase.from('diaryStickers').delete().eq('id', existingStickerData.id);
-
-          toast.on({ label: '스티커가 삭제되었습니다' });
-        }
-      } else {
-        if (existingStickerData) {
-          const { error: updateError } = await supabase
-            .from('diaryStickers')
-            .update({ stickersData: stickersToSave })
-            .eq('id', existingStickerData.id);
-
-          if (updateError) {
-            throw updateError;
-          }
-
-          toast.on({ label: '스티커가 업데이트 되었습니다' });
-        } else {
-          const { error: insertError } = await supabase.from('diaryStickers').insert({
-            diaryId,
-            stickersData: stickersToSave
-          });
-
-          if (insertError) {
-            throw insertError;
-          }
-          toast.on({ label: '스티커가 저장되었습니다' });
-        }
-      }
-    } catch (error) {
-      console.error('Error saving stickers:', error);
-    }
-  };
-
   //유저 있으면 서버에서 다이어리랑, 스티커 가지고 오기
   const {
     data: diary,
@@ -138,7 +85,7 @@ const DiaryContainer = () => {
   } = useQuery({
     queryKey: ['diaries', diaryId],
     queryFn: () => fetchDiary(diaryId),
-    enabled: !!userId
+    enabled: !!user
   });
 
   const {
@@ -148,14 +95,12 @@ const DiaryContainer = () => {
   } = useQuery({
     queryKey: ['stickers', diaryId],
     queryFn: () => fetchStickers(diaryId),
-    enabled: !!userId
+    enabled: !!user
   });
 
   useEffect(() => {
     const readDiary = (): void => {
-      if (user) {
-        setUserId(user.id);
-      } else {
+      if (!user) {
         const savedDiaries = JSON.parse(localStorage.getItem('localDiaries') || '[]');
         const foundDiary = savedDiaries.find((diary: Diary) => diary.diaryId === diaryId);
         if (foundDiary) {
@@ -170,6 +115,7 @@ const DiaryContainer = () => {
     };
 
     readDiary();
+
     if (rStickers) {
       setStickers(rStickers);
     }
@@ -192,6 +138,76 @@ const DiaryContainer = () => {
     }
   });
 
+  const saveStickersMutation = useMutation({
+    mutationFn: async (stickersToSave: StickerDataType[]) => {
+      const supabase = createClient(); // supabase 클라이언트 생성
+
+      // 스티커가 존재하는지 확인
+      const { data: existingStickerData, error: fetchError } = await supabase
+        .from('diaryStickers')
+        .select('id')
+        .eq('diaryId', diaryId)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        throw fetchError;
+      }
+      //서버에 데이터가 있는경우
+      if (existingStickerData) {
+        // 스테이트스티커가 없을 경우 스티커 삭제 -->delete요청
+        if (stickersToSave.length === 0) {
+          await supabase.from('diaryStickers').delete().eq('id', existingStickerData.id);
+          toast.on({ label: '스티커가 삭제되었습니다' });
+        } else {
+          //스테이트스티커 있는경우 --> patch
+          const { error: updateError } = await supabase
+            .from('diaryStickers')
+            .update({ stickersData: stickersToSave })
+            .eq('id', existingStickerData.id);
+
+          if (updateError) {
+            throw updateError;
+          }
+
+          toast.on({ label: '스티커가 업데이트 되었습니다' });
+        }
+      } else {
+        if (stickersToSave.length === 0) {
+          toast.on({ label: '스티커를 선택해주세요' });
+        } else {
+          // 서버에 스티커가 없을 경우 새로 삽입  --> post 요청
+          const { error: insertError } = await supabase.from('diaryStickers').insert({
+            diaryId,
+            stickersData: stickersToSave
+          });
+
+          if (insertError) {
+            throw insertError;
+          }
+
+          toast.on({ label: '스티커가 저장되었습니다' });
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stickers', diaryId] });
+      toast.on({ label: '스티커처리' });
+    },
+    onError: (error) => {
+      console.error('Error saving stickers:', error);
+      toast.on({ label: '스티커 저장 중 오류 발생' });
+    }
+  });
+  // 버튼 클릭 시 스티커 저장 뮤테이션 트리거
+  const handleSaveStickers = () => {
+    //스티커 문자열로 변환(저장준비)
+    const stickersToSave = stickers.map((sticker) => ({
+      ...sticker,
+      component: sticker.component.type.displayName as string
+    }));
+    saveStickersMutation.mutate(stickersToSave);
+  };
+
   if (isLoading) {
     return (
       <div>
@@ -200,7 +216,7 @@ const DiaryContainer = () => {
     );
   }
 
-  if (userId) {
+  if (user) {
     if (isQueryLoading || isStickersQueryLoading) {
       return (
         <div>
@@ -210,7 +226,7 @@ const DiaryContainer = () => {
     }
   }
 
-  const diaryData = userId ? diary : localDiary;
+  const diaryData = user ? diary : localDiary;
 
   if (error) {
     return <p>본인이 쓴 글이 아님</p>;
@@ -305,7 +321,7 @@ const DiaryContainer = () => {
                   <TextButton onClick={handleBackward}>뒤로가기</TextButton>
                 </div>
                 <div className="relative flex gap-12px-row-m md:gap-8px-row">
-                  {userId && (
+                  {user && (
                     <>
                       <button
                         onClick={() => {
