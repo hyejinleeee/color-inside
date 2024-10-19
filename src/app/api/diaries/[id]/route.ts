@@ -113,6 +113,27 @@ export const DELETE = async (request: NextRequest, { params }: { params: { id: s
   }
 
   try {
+    // 스티커 존재 여부 확인
+    const { data: existingStickerData, error: fetchError } = await supabase
+      .from('diaryStickers')
+      .select('id')
+      .eq('diaryId', diaryId);
+
+    if (fetchError) {
+      console.error('Error fetching stickers:', fetchError);
+      return NextResponse.json({ error: 'Database Error: Unable to fetch stickers' }, { status: 500 });
+    }
+
+    // 스티커가 존재하면 삭제
+    if (existingStickerData && existingStickerData.length > 0) {
+      const { error: deleteStickersError } = await supabase.from('diaryStickers').delete().eq('diaryId', diaryId);
+
+      if (deleteStickersError) {
+        console.error('Error deleting stickers:', deleteStickersError);
+        return NextResponse.json({ error: 'Database Error: Unable to delete stickers' }, { status: 500 });
+      }
+    }
+
     const diaryImg = await fetchDiaryImage(diaryId);
 
     if (diaryImg) {

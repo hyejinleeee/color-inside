@@ -22,9 +22,8 @@ import { v4 as uuidv4 } from 'uuid';
 import SmilePlusIcon from './assets/SmilePlusIcon';
 import SaveIcon from './assets/SaveIcon';
 import XIconBlack from './assets/XIconBlack';
-import { createClient } from '@/utils/supabase/client';
 import TipBubble from './assets/TipBubble';
-import { fetchStickers } from '@/apis/stickers';
+import { fetchStickers, saveStickers } from '@/apis/stickers';
 
 type StickerType = {
   id: string;
@@ -51,7 +50,6 @@ const UserDiaryContainer = () => {
   const modal = useModal();
 
   const queryClient = useQueryClient();
-  const supabase = createClient();
 
   const { setColor, setTags, setContent, setImg, setIsDiaryEditMode } = useZustandStore();
   const [stickers, setStickers] = useState<StickerType[]>([]);
@@ -71,7 +69,6 @@ const UserDiaryContainer = () => {
     );
   };
 
-  //유저 있으면 서버에서 다이어리랑, 스티커 가지고 오기
   const {
     data: diary,
     error,
@@ -114,65 +111,18 @@ const UserDiaryContainer = () => {
   });
 
   const saveStickersMutation = useMutation({
-    mutationFn: async (stickersToSave: StickerDataType[]) => {
-      const supabase = createClient(); // supabase 클라이언트 생성
-
-      // 스티커가 존재하는지 확인
-      const { data: existingStickerData, error: fetchError } = await supabase
-        .from('diaryStickers')
-        .select('id')
-        .eq('diaryId', diaryId)
-        .single();
-
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        throw fetchError;
-      }
-      //서버에 데이터가 있는경우
-      if (existingStickerData) {
-        // 스테이트스티커가 없을 경우 스티커 삭제 -->delete요청
-        if (stickersToSave.length === 0) {
-          await supabase.from('diaryStickers').delete().eq('id', existingStickerData.id);
-          toast.on({ label: '스티커가 삭제되었습니다' });
-        } else {
-          //스테이트스티커 있는경우 --> patch
-          const { error: updateError } = await supabase
-            .from('diaryStickers')
-            .update({ stickersData: stickersToSave })
-            .eq('id', existingStickerData.id);
-
-          if (updateError) {
-            throw updateError;
-          }
-
-          toast.on({ label: '스티커가 업데이트 되었습니다' });
-        }
-      } else {
-        if (stickersToSave.length === 0) {
-          toast.on({ label: '스티커를 선택해주세요' });
-        } else {
-          // 서버에 스티커가 없을 경우 새로 삽입  --> post 요청
-          const { error: insertError } = await supabase.from('diaryStickers').insert({
-            diaryId,
-            stickersData: stickersToSave
-          });
-
-          if (insertError) {
-            throw insertError;
-          }
-
-          toast.on({ label: '스티커가 저장되었습니다' });
-        }
-      }
+    mutationFn: ({ stickersToSave, diaryId }: { stickersToSave: StickerDataType[]; diaryId: string }) =>
+      saveStickers(stickersToSave, diaryId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stickers', diaryId] });
+      toast.on({ label: '스티커처리' });
     },
-    // onSuccess: () => {
-    //   queryClient.invalidateQueries({ queryKey: ['stickers', diaryId] });
-    //   toast.on({ label: '스티커처리' });
-    // },
     onError: (error) => {
       console.error('Error saving stickers:', error);
       toast.on({ label: '스티커 저장 중 오류 발생' });
     }
   });
+
   // 버튼 클릭 시 스티커 저장 뮤테이션 트리거
   const handleSaveStickers = () => {
     //스티커 문자열로 변환(저장준비)
@@ -180,7 +130,8 @@ const UserDiaryContainer = () => {
       ...sticker,
       component: sticker.component.type.displayName as string
     }));
-    saveStickersMutation.mutate(stickersToSave);
+
+    saveStickersMutation.mutate({ stickersToSave, diaryId });
   };
 
   if (isQueryLoading || isStickersQueryLoading) {
@@ -219,14 +170,6 @@ const UserDiaryContainer = () => {
   //다이어리 삭제 시 스티커가 있으면 스터커도 함께 삭제
   const confirmDelete = async (): Promise<void> => {
     try {
-      if (stickers.length > 0) {
-        const { error: deleteStickersError } = await supabase.from('diaryStickers').delete().eq('diaryId', diaryId);
-
-        if (deleteStickersError) {
-          throw deleteStickersError;
-        }
-      }
-
       await deleteMutation.mutateAsync();
     } catch (error) {
       console.error('Error deleting diary or stickers:', error);
