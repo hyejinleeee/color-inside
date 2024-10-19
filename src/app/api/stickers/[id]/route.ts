@@ -34,3 +34,7 @@ export const GET = async (request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ error: 'Server Error: Unable to process GET request' }, { status: 500 });
   }
 };
+
+export const DELETE = async (request: NextRequest, { params }: { params: { id: string } }): Promise<NextResponse> => {
+  return NextResponse.json({ status: 200 });
+};
