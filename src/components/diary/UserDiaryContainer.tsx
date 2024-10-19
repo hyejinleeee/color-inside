@@ -6,7 +6,7 @@ import { useToast } from '@/providers/toast.context';
 import useZustandStore from '@/zustand/zustandStore';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Button from '../common/Button';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -24,6 +24,7 @@ import SaveIcon from './assets/SaveIcon';
 import XIconBlack from './assets/XIconBlack';
 import TipBubble from './assets/TipBubble';
 import { fetchStickers, saveStickers } from '@/apis/stickers';
+import { DiaryContainerProps } from '@/types/diary.type';
 
 type StickerType = {
   id: string;
@@ -37,14 +38,8 @@ type StickerDataType = {
   position: { x: number; y: number };
 };
 
-const UserDiaryContainer = () => {
+const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM }) => {
   const router = useRouter();
-  const params = useParams();
-  const diaryId = params.id as string;
-  const searchParams = useSearchParams();
-
-  const form = searchParams.get('form');
-  const YYMM = searchParams.get('YYMM');
 
   const toast = useToast();
   const modal = useModal();

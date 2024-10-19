@@ -18,3 +18,9 @@ export type NewDiary = {
   img: File | string | null;
   date: string;
 };
+
+export interface DiaryContainerProps {
+  diaryId: string;
+  form: string | null;
+  YYMM: string | null;
+}

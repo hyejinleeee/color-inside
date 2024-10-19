@@ -2,10 +2,10 @@
 
 import { useModal } from '@/providers/modal.context';
 import { useToast } from '@/providers/toast.context';
-import { Diary } from '@/types/diary.type';
+import { Diary, DiaryContainerProps } from '@/types/diary.type';
 import { deleteFromLocal, fetchLocalDiary } from '@/utils/diaryLocalStorage';
 import useZustandStore from '@/zustand/zustandStore';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Button from '../common/Button';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -16,14 +16,8 @@ import XIconWhite from './assets/XIconWhite';
 import DiaryContent from './DiaryContent';
 import CircleUI from './CircleUI';
 
-const GuestDiaryContainer = () => {
+const GuestDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM }) => {
   const router = useRouter();
-  const params = useParams();
-  const diaryId = params.id as string;
-  const searchParams = useSearchParams();
-
-  const form = searchParams.get('form');
-  const YYMM = searchParams.get('YYMM');
 
   const toast = useToast();
   const modal = useModal();
