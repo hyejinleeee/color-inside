@@ -106,11 +106,14 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
   });
 
   const saveStickersMutation = useMutation({
-    mutationFn: ({ stickersToSave, diaryId }: { stickersToSave: StickerDataType[]; diaryId: string }) =>
-      saveStickers(stickersToSave, diaryId),
-    onSuccess: () => {
+    mutationFn: async ({ stickersToSave, diaryId }: { stickersToSave: StickerDataType[]; diaryId: string }) => {
+      const response = await saveStickers(stickersToSave, diaryId);
+      const responseMessage = response.message;
+      return responseMessage;
+    },
+    onSuccess: (responseMessage) => {
       queryClient.invalidateQueries({ queryKey: ['stickers', diaryId] });
-      toast.on({ label: '스티커처리' });
+      toast.on({ label: `${responseMessage}` });
     },
     onError: (error) => {
       console.error('Error saving stickers:', error);

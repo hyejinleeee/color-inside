@@ -18,7 +18,6 @@ import CircleUI from './CircleUI';
 
 const GuestDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM }) => {
   const router = useRouter();
-
   const toast = useToast();
   const modal = useModal();
 

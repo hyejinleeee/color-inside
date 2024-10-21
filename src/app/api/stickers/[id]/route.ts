@@ -35,6 +35,78 @@ export const GET = async (request: NextRequest, { params }: { params: { id: stri
   }
 };
 
+// PUT 요청: 스티커가 없으면 생성, 있으면 업데이트
+export const PUT = async (request: NextRequest, { params }: { params: { id: string } }): Promise<NextResponse> => {
+  const supabase = createClient();
+  const diaryId = params.id;
+  const stickersToSave = await request.json(); // 클라이언트에서 보낸 스티커 데이터
+
+  // 스티커 존재 여부 확인
+  const { data: existingStickerData, error: fetchError } = await supabase
+    .from('diaryStickers')
+    .select('id')
+    .eq('diaryId', diaryId)
+    .single();
+
+  if (fetchError && fetchError.code !== 'PGRST116') {
+    // 데이터베이스 에러 처리
+    return NextResponse.json({ error: 'Failed to fetch sticker data' }, { status: 500 });
+  }
+
+  if (existingStickerData) {
+    // 스티커가 있으면 업데이트
+    const { error: updateError } = await supabase
+      .from('diaryStickers')
+      .update({ stickersData: stickersToSave }) // 업데이트할 데이터
+      .eq('diaryId', diaryId);
+
+    if (updateError) {
+      return NextResponse.json({ error: 'Failed to update sticker data' }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: '스티커가 업데이트 되었습니다' }, { status: 200 });
+  } else {
+    // 스티커가 없으면 생성
+    const { error: insertError } = await supabase
+      .from('diaryStickers')
+      .insert({ diaryId, stickersData: stickersToSave });
+
+    if (insertError) {
+      return NextResponse.json({ error: 'Failed to insert sticker data' }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: '스티커가 추가 되었습니다' }, { status: 201 });
+  }
+};
+
+// DELETE 요청: 스티커가 있으면 삭제
 export const DELETE = async (request: NextRequest, { params }: { params: { id: string } }): Promise<NextResponse> => {
-  return NextResponse.json({ status: 200 });
+  const supabase = createClient();
+  const diaryId = params.id;
+
+  // 스티커 존재 여부 확인
+  const { data: existingStickerData, error: fetchError } = await supabase
+    .from('diaryStickers')
+    .select('id')
+    .eq('diaryId', diaryId)
+    .single();
+
+  if (fetchError && fetchError.code !== 'PGRST116') {
+    // 데이터베이스 에러 처리
+    return NextResponse.json({ error: 'Failed to fetch sticker data' }, { status: 500 });
+  }
+
+  if (existingStickerData) {
+    // 스티커가 있으면 삭제
+    const { error: deleteError } = await supabase.from('diaryStickers').delete().eq('diaryId', diaryId);
+
+    if (deleteError) {
+      return NextResponse.json({ error: 'Failed to delete sticker data' }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: '스티커가 삭제되었습니다' }, { status: 200 });
+  } else {
+    // 스티커가 없을 때
+    return NextResponse.json({ message: '스티커를 저장해주세요' }, { status: 200 });
+  }
 };
