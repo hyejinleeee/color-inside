@@ -36,9 +36,7 @@ export const saveStickers = async (stickersToSave: StickerDataType[], diaryId: s
   try {
     if (stickersToSave.length) {
       // 스티커가 있는 경우 - 업데이트 또는 생성
-      const response = await axios.put(`/api/stickers/${diaryId}`, {
-        stickersToSave // 스티커 데이터를 함께 전달
-      });
+      const response = await axios.put(`/api/stickers/${diaryId}`, stickersToSave);
       return response.data;
     } else {
       // 스티커가 없는 경우 - 삭제

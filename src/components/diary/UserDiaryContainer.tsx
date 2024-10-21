@@ -66,7 +66,7 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
 
   const {
     data: diary,
-    error,
+    error: diaryError,
     isPending: isQueryLoading
   } = useQuery({
     queryKey: ['diaries', diaryId],
@@ -86,7 +86,7 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
     if (rStickers) {
       setStickers(rStickers);
     }
-  }, [router, diaryId, setColor, setTags, setContent, setImg, rStickers]);
+  }, [rStickers]);
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -112,8 +112,8 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
       return responseMessage;
     },
     onSuccess: (responseMessage) => {
-      queryClient.invalidateQueries({ queryKey: ['stickers', diaryId] });
       toast.on({ label: `${responseMessage}` });
+      queryClient.invalidateQueries({ queryKey: ['stickers', diaryId] });
     },
     onError: (error) => {
       console.error('Error saving stickers:', error);
@@ -142,12 +142,15 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
 
   const diaryData = diary;
 
-  if (error) {
-    return <p>본인이 쓴 글이 아님</p>;
+  if (diaryError) {
+    return <p className="flex justify-center items-center h-screen">본인이 쓴 글이 아님</p>;
+  }
+  if (stickerError) {
+    return <p className="flex justify-center items-center h-screen">스티커 가져오는거 에러</p>;
   }
 
   if (!diaryData) {
-    return <p>No diary found</p>;
+    return <p className="flex justify-center items-center h-screen">No diary found</p>;
   }
 
   const handleBackward = () => {

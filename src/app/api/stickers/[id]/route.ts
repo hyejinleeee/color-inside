@@ -21,12 +21,12 @@ export const GET = async (request: NextRequest, { params }: { params: { id: stri
     const { data } = await supabase.from('diaryStickers').select('stickersData').eq('diaryId', diaryId).single();
 
     // 스티커가 없을 때 빈 배열 반환
-    if (!data) {
+    if (!data || !data.stickersData || !Array.isArray(data.stickersData)) {
       return NextResponse.json([], { status: 200 });
     }
-
+    console.log('드디어?', data);
     // 스티커 데이터 처리
-    const stickersData = Array.isArray(data.stickersData) ? data.stickersData : [];
+    const stickersData = data.stickersData;
 
     return NextResponse.json(stickersData, { status: 200 });
   } catch (error) {
@@ -39,8 +39,8 @@ export const GET = async (request: NextRequest, { params }: { params: { id: stri
 export const PUT = async (request: NextRequest, { params }: { params: { id: string } }): Promise<NextResponse> => {
   const supabase = createClient();
   const diaryId = params.id;
-  const stickersToSave = await request.json(); // 클라이언트에서 보낸 스티커 데이터
-
+  const stickersData = await request.json(); // 클라이언트에서 보낸 스티커 데이터
+  console.log('아 저장하기 힘드네', stickersData);
   // 스티커 존재 여부 확인
   const { data: existingStickerData, error: fetchError } = await supabase
     .from('diaryStickers')
@@ -57,7 +57,7 @@ export const PUT = async (request: NextRequest, { params }: { params: { id: stri
     // 스티커가 있으면 업데이트
     const { error: updateError } = await supabase
       .from('diaryStickers')
-      .update({ stickersData: stickersToSave }) // 업데이트할 데이터
+      .update({ stickersData }) // 업데이트할 데이터
       .eq('diaryId', diaryId);
 
     if (updateError) {
@@ -67,9 +67,7 @@ export const PUT = async (request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json({ message: '스티커가 업데이트 되었습니다' }, { status: 200 });
   } else {
     // 스티커가 없으면 생성
-    const { error: insertError } = await supabase
-      .from('diaryStickers')
-      .insert({ diaryId, stickersData: stickersToSave });
+    const { error: insertError } = await supabase.from('diaryStickers').insert({ diaryId, stickersData });
 
     if (insertError) {
       return NextResponse.json({ error: 'Failed to insert sticker data' }, { status: 500 });
@@ -107,6 +105,6 @@ export const DELETE = async (request: NextRequest, { params }: { params: { id: s
     return NextResponse.json({ message: '스티커가 삭제되었습니다' }, { status: 200 });
   } else {
     // 스티커가 없을 때
-    return NextResponse.json({ message: '스티커를 저장해주세요' }, { status: 200 });
+    return NextResponse.json({ message: '스티커를 추가해주세요' }, { status: 200 });
   }
 };
