@@ -74,7 +74,7 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
   });
 
   const {
-    data: rStickers,
+    data: queryStickers,
     error: stickerError,
     isPending: isStickersQueryLoading
   } = useQuery({
@@ -83,10 +83,10 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
   });
 
   useEffect(() => {
-    if (rStickers) {
-      setStickers(rStickers);
+    if (queryStickers) {
+      setStickers(queryStickers);
     }
-  }, [rStickers]);
+  }, [queryStickers]);
 
   const deleteMutation = useMutation({
     mutationFn: async () => {

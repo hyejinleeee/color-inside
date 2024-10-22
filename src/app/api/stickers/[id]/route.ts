@@ -24,7 +24,7 @@ export const GET = async (request: NextRequest, { params }: { params: { id: stri
     if (!data || !data.stickersData || !Array.isArray(data.stickersData)) {
       return NextResponse.json([], { status: 200 });
     }
-    console.log('드디어?', data);
+
     // 스티커 데이터 처리
     const stickersData = data.stickersData;
 
@@ -90,7 +90,6 @@ export const DELETE = async (request: NextRequest, { params }: { params: { id: s
     .single();
 
   if (fetchError && fetchError.code !== 'PGRST116') {
-    // 데이터베이스 에러 처리
     return NextResponse.json({ error: 'Failed to fetch sticker data' }, { status: 500 });
   }
 
@@ -104,7 +103,7 @@ export const DELETE = async (request: NextRequest, { params }: { params: { id: s
 
     return NextResponse.json({ message: '스티커가 삭제되었습니다' }, { status: 200 });
   } else {
-    // 스티커가 없을 때
+    // 스티커가 없는데 저장을 눌렀을 때
     return NextResponse.json({ message: '스티커를 추가해주세요' }, { status: 200 });
   }
 };

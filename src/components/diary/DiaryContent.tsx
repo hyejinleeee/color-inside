@@ -23,7 +23,15 @@ const DiaryContent = ({ diary }: { diary: Diary }) => {
       <div className="flex justify-start mb-3 w-252px-row-m h-140px-col-m  md:w-360px-row md:h-200px-col">
         {diary.img ? (
           <div className="relative flex justify-start w-252px-row-m h-140px-col-m   md:w-360px-row md:h-200px-col">
-            <Image src={diary.img} alt="Diary Image" fill className="w-full h-full object-cover" priority={true} />
+            <Image
+              src={diary.img}
+              alt="Diary Image"
+              fill
+              className="w-full h-full object-cover"
+              placeholder="blur"
+              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+              priority={true}
+            />
           </div>
         ) : (
           <div
