@@ -1,7 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    remotePatterns: [{ hostname: 'ngnwhcimrvjbniipoibl.supabase.co' }]
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'ngnwhcimrvjbniipoibl.supabase.co',
+        pathname: '/storage/v1/object/public/**'
+      }
+    ]
   }
 };
 

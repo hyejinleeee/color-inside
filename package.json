@@ -19,6 +19,7 @@
     "@tanstack/react-query-devtools": "^5.59.15",
     "@types/uuid": "^10.0.0",
     "axios": "^1.7.4",
+    "browser-image-compression": "^2.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "css-loader": "^7.1.2",

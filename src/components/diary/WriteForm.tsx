@@ -14,7 +14,7 @@ import {
   saveToLocal,
   updateLocalDiary
 } from '@/utils/diaryLocalStorage';
-import { urlToFile } from '@/utils/imageFileUtils';
+import { compressImageFile, urlToFile } from '@/utils/imageFileUtils';
 import useZustandStore from '@/zustand/zustandStore';
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
@@ -97,11 +97,24 @@ const WriteForm = () => {
       formData.append('tags', JSON.stringify(newDiary.tags));
       formData.append('content', newDiary.content);
       formData.append('date', newDiary.date);
+
       if (newDiary.img) {
-        const file = typeof newDiary.img === 'string' ? await urlToFile(newDiary.img) : newDiary.img;
-        formData.append('img', file);
+        let file;
+        if (typeof newDiary.img === 'string') {
+          // URL로부터 파일 객체로 변환
+          file = await urlToFile(newDiary.img);
+        } else {
+          file = newDiary.img;
+        }
+
+        // 이미지 압축 호출
+        const compressedFile = await compressImageFile(file);
+        if (compressedFile) {
+          formData.append('img', compressedFile);
+        } else {
+          formData.append('img', file);
+        }
       }
-      formData.append('date', newDiary.date);
 
       if (isDiaryEditMode) {
         await axios.patch(`/api/diaries/${diaryId}`, formData);

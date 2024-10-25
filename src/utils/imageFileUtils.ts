@@ -1,4 +1,5 @@
 import heic2any from 'heic2any';
+import imageCompression from 'browser-image-compression';
 
 //작성폼에서 url인풋 받으면 file로 변환
 export const urlToFile = async (url: string): Promise<File> => {
@@ -34,5 +35,23 @@ export const convertHeicToJpeg = async (lastDroppedFile: File) => {
   } catch (err) {
     console.error('Error converting HEIF image:', err);
     throw err;
+  }
+};
+
+//이미지 압축
+export const compressImageFile = async (file: File): Promise<File | null> => {
+  // 이미지 압축 옵션
+  const options = {
+    maxSizeMB: 1, // 최대 크기 (MB) - 500KB
+    maxWidthOrHeight: 640, // 최대 너비 또는 높이
+    useWebWorker: true // 웹 워커 사용 여부
+  };
+  try {
+    // 이미지 압축
+    const compressedFile = await imageCompression(file, options);
+    return compressedFile; // 압축된 파일 반환
+  } catch (error) {
+    console.error('Image compression error:', error);
+    return null; // 오류 발생 시 null 반환
   }
 };
