@@ -40,7 +40,7 @@ export const PUT = async (request: NextRequest, { params }: { params: { id: stri
   const supabase = createClient();
   const diaryId = params.id;
   const stickersData = await request.json(); // 클라이언트에서 보낸 스티커 데이터
-  console.log('아 저장하기 힘드네', stickersData);
+
   // 스티커 존재 여부 확인
   const { data: existingStickerData, error: fetchError } = await supabase
     .from('diaryStickers')

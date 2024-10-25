@@ -1,5 +1,6 @@
 import { Diary } from '@/types/diary.type';
 import Image from 'next/image';
+import React, { memo } from 'react';
 
 const DiaryContent = ({ diary }: { diary: Diary }) => {
   const dateObj = new Date(diary.date);
@@ -54,4 +55,4 @@ const DiaryContent = ({ diary }: { diary: Diary }) => {
   );
 };
 
-export default DiaryContent;
+export default memo(DiaryContent);
