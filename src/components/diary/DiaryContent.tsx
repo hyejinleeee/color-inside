@@ -1,3 +1,4 @@
+'use client';
 import { Diary } from '@/types/diary.type';
 import Image from 'next/image';
 
@@ -26,11 +27,13 @@ const DiaryContent = ({ diary }: { diary: Diary }) => {
             <Image
               src={diary.img}
               alt="Diary Image"
-              fill
-              className="w-full h-full object-cover"
+              width={360}
+              height={200}
+              className="object-cover"
               placeholder="blur"
               blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
               priority={true}
+              layout="responsive"
             />
           </div>
         ) : (
