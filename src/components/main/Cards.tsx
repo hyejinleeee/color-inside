@@ -7,6 +7,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Dispatch, SetStateAction } from 'react';
 import { Calendar } from '../ui/calendar';
 import PlusDiaryIcon from './assets/PlusDiaryIcon';
+import useAuth from '@/hooks/useAuth';
+import { QueryClient, useQueryClient } from '@tanstack/react-query';
+import { fetchDiary } from '@/apis/diary';
 
 interface CardsProps {
   isCalendar: boolean;
@@ -22,7 +25,8 @@ const Cards = ({ diaryList, isCalendar, date, setDate, handleInputDate, isNeedNe
   const searchParams = useSearchParams();
   const route = useRouter();
   const today = new Date();
-
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   diaryList.sort((a, b) => {
     if (a.date < b.date) {
       return -1;
@@ -30,7 +34,12 @@ const Cards = ({ diaryList, isCalendar, date, setDate, handleInputDate, isNeedNe
       return 1;
     }
   });
-
+  //프리패칭
+  const handleOnHoverPrefetchDiary = (diaryId: string) => {
+    if (user) {
+      queryClient.prefetchQuery({ queryKey: ['diaries', diaryId], queryFn: () => fetchDiary(diaryId) });
+    }
+  };
   const cardContent = () => {
     if (Number(searchParams.get('YYMM')) > todayYYMM) {
       return (
@@ -59,6 +68,7 @@ const Cards = ({ diaryList, isCalendar, date, setDate, handleInputDate, isNeedNe
                   onClick={() => {
                     route.push(`/diaries/${diary.diaryId}?form=cards&YYMM=${searchParams.get('YYMM')}`);
                   }}
+                  onMouseEnter={() => handleOnHoverPrefetchDiary(diary.diaryId)}
                   style={{ backgroundColor: `${diary.color}` }}
                   className="min-w-160px-row-m min-h-88px-col-m md:min-w-0 md:min-h-0 w-160px-row-m md:w-168px-row h-88px-col md:h-102px-col rounded-lg md:rounded-3xl overflow-hidden border md:border-2 border-[#E6D3BC] cursor-pointer"
                 >

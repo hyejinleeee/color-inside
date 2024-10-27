@@ -65,6 +65,7 @@ function Calendar({
   const handleOnHoverPrefetchDiary = (diaryId: string) => {
     if (user) {
       queryClient.prefetchQuery({ queryKey: ['diaries', diaryId], queryFn: () => fetchDiary(diaryId) });
+      console.log('프리패칭 테스트');
     }
   };
 
