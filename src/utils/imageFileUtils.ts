@@ -43,7 +43,7 @@ export const compressImageFile = async (file: File): Promise<File | null> => {
   // 이미지 압축 옵션
   const options = {
     maxSizeMB: 1, // 최대 크기 (MB) - 500KB
-    maxWidthOrHeight: 640, // 최대 너비 또는 높이
+    maxWidthOrHeight: 360, // 최대 너비 또는 높이
     useWebWorker: true // 웹 워커 사용 여부
   };
   try {
