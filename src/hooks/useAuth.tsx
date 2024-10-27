@@ -7,6 +7,8 @@ const useAuth = () => {
   const { data: user, isPending } = useQuery({
     queryKey: ['user'],
     queryFn: fetchUser,
+    staleTime: 1000 * 60 * 5, // 5분 동안
+
     refetchOnWindowFocus: true
   });
 
