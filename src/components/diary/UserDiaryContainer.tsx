@@ -70,7 +70,8 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
     isPending: isQueryLoading
   } = useQuery({
     queryKey: ['diaries', diaryId],
-    queryFn: () => fetchDiary(diaryId)
+    queryFn: () => fetchDiary(diaryId),
+    initialData: () => queryClient.getQueryData(['diaries', diaryId])
   });
 
   const {
