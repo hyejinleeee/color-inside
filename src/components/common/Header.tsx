@@ -100,6 +100,7 @@ const Header = () => {
                 alt="Profile Image"
                 fill
                 className="rounded-full cursor-pointer object-cover"
+                priority={true}
               />
             </div>
           </Link>

@@ -23,9 +23,7 @@ interface LogInFormData {
 const LogInForm = () => {
   const router = useRouter();
   const toast = useToast();
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
+
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -44,8 +42,7 @@ const LogInForm = () => {
 
       queryClient.invalidateQueries({ queryKey: ['user'] });
       queryClient.invalidateQueries({ queryKey: ['information'] });
-      queryClient.invalidateQueries({ queryKey: ['diaries', 'main', year, month] });
-      queryClient.invalidateQueries({ queryKey: ['main'] });
+      queryClient.invalidateQueries({ queryKey: ['diaries'] });
     },
     onError: (error) => {
       console.error('로그인 실패: ', error);

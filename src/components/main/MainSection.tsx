@@ -1,11 +1,9 @@
 'use client';
 
-import axios from 'axios';
 import useAuth from '../../hooks/useAuth';
 import Cards from './Cards';
 import { Diary, DiaryList } from '@/types/diary.type';
 import { formatFullDate } from '@/utils/dateUtils';
-import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Calendar } from '../ui/calendar';
@@ -19,6 +17,7 @@ import GoEmotionTestIcon from './assets/GoEmotionTestIcon';
 import SeparatorIcon from './assets/SeparatorIcon';
 import useMakeQueryString from '@/hooks/useMakeQueryString';
 import useGetInitialValue from '@/hooks/useGetInitialValue';
+import useDiaries from '@/hooks/useDiaries';
 
 const MainSection = () => {
   const today = new Date();
@@ -33,26 +32,36 @@ const MainSection = () => {
   const year = date.getFullYear();
   const month = date.getMonth() + 1;
 
-  const diaries = useQuery<DiaryList>({
-    queryKey: ['diaries', 'main', year, month],
-    queryFn: async () => {
-      if (user) {
-        const { data } = await axios.get(`/api/diaries?year=${year}&month=${month}`);
-        checkTodayWritten(data);
-        return data;
-      } else {
-        const data = JSON.parse(localStorage.getItem('localDiaries') || '[]');
-        const localList = data.filter((diary: Diary) => {
-          const diaryYear = new Date(diary.date).getFullYear();
-          const diaryMonth = new Date(diary.date).getMonth() + 1;
-          return diaryMonth === month && diaryYear === year;
-        });
-        checkTodayWritten(localList);
-        return localList;
-      }
-    },
-    enabled: !isPending
+  const checkTodayWritten = (data: DiaryList): void => {
+    if (!data || data.length === 0) {
+      setIsNeedNew(false);
+      return;
+    }
+
+    if (formatFullDate(String(data[0]?.date)).slice(0, 7) === formatFullDate(String(today)).slice(0, 7)) {
+      const findDiary = data.find((i: Diary) => {
+        return new Date(i.date).getDate() === today.getDate();
+      });
+      setIsNeedNew(!findDiary); // 일기가 있으면 false, 없으면 true
+    } else {
+      setIsNeedNew(false);
+    }
+  };
+
+  const { diaries, isDiariesPending } = useDiaries(year, month);
+
+  const data = JSON.parse(localStorage.getItem('localDiaries') || '[]');
+  const localList = data.filter((diary: Diary) => {
+    const diaryYear = new Date(diary.date).getFullYear();
+    const diaryMonth = new Date(diary.date).getMonth() + 1;
+    return diaryMonth === month && diaryYear === year;
   });
+
+  const diaryList = user ? diaries : localList;
+
+  useEffect(() => {
+    checkTodayWritten(diaryList);
+  }, [diaryList]);
 
   useEffect(() => {
     setDate(date);
@@ -67,20 +76,6 @@ const MainSection = () => {
       router.push(`${queryString}`);
     }
   }, [queryString]);
-
-  const checkTodayWritten = (data: DiaryList): void => {
-    setIsNeedNew(false);
-    if (formatFullDate(String(data[0]?.date)).slice(0, 7) === formatFullDate(String(today)).slice(0, 7)) {
-      const findDiary = data.find((i: Diary) => {
-        return new Date(i.date).getDate() === today.getDate();
-      });
-      if (findDiary) {
-        setIsNeedNew(false);
-      } else {
-        setIsNeedNew(true);
-      }
-    }
-  };
 
   const changeForm = (name: string): void => {
     if (name === form) {
@@ -133,10 +128,10 @@ const MainSection = () => {
         {form === 'calendar' ? (
           <div>
             <Calendar
-              diaryList={diaries.data || []}
+              diaryList={diaryList || []}
               handleInputDate={handleInputDate}
               isCalendar={form === 'calendar'}
-              isLoading={diaries.isLoading}
+              isLoading={isDiariesPending}
               month={date}
               onMonthChange={setDate}
             />
@@ -145,7 +140,7 @@ const MainSection = () => {
           <Cards
             isCalendar={form === 'calendar'}
             handleInputDate={handleInputDate}
-            diaryList={diaries.data || []}
+            diaryList={diaryList || []}
             date={date}
             setDate={setDate}
             isNeedNew={isNeedNew}

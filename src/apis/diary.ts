@@ -5,6 +5,12 @@ export const fetchDiary = async (id: string) => {
   return response.data;
 };
 
+export const fetchDiaries = async (year: number, month: number) => {
+  const { data } = await axios.get(`/api/diaries?year=${year}&month=${month}`);
+
+  return data;
+};
+
 export const fetchDiaryDate = async (id: string): Promise<string> => {
   const response = await axios.get(`/api/diaries/${id}`);
   return String(response.data.date);

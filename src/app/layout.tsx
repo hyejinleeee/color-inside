@@ -1,6 +1,4 @@
-import ChannelTalk from '@/components/common/ChannelTalk';
 import Header from '@/components/common/Header';
-import Landing from '@/components/common/Landing';
 import NavigationBar from '@/components/common/NavigationBar';
 import { ModalProvider } from '@/providers/modal.context';
 import QueryProvider from '@/providers/ReactQueryClientProvider';
@@ -8,6 +6,8 @@ import { ToastProvider } from '@/providers/toast.context';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
+import ChannelTalk from '@/components/common/ChannelTalk';
+import Landing from '@/components/common/Landing';
 
 export const metadata: Metadata = {
   title: 'Color Inside',
@@ -27,9 +27,6 @@ const pretendard = localFont({
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head>
-        <script src="https://developers.kakao.com/sdk/js/kakao.js" async></script>
-      </head>
       <body className={`${pretendard.variable} font-pretendard`}>
         <QueryProvider>
           <ToastProvider>

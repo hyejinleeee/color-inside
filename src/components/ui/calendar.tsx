@@ -20,8 +20,6 @@ import Stamp from '../main/Stamp';
 import PrevYearIcon from '../main/assets/PrevYearIcon';
 import NextYearIcon from '../main/assets/NextYearIcon';
 import CloseIcon from '../main/assets/CloseIcon';
-import { fetchDiary } from '@/apis/diary';
-import { useQueryClient } from '@tanstack/react-query';
 
 export type CalendarProps = ComponentProps<typeof DayPicker> & {
   diaryList: DiaryList;
@@ -50,7 +48,6 @@ function Calendar({
   const searchParams = useSearchParams();
   const tbodyRef = useRef<HTMLDivElement>(null);
   const [coverHeight, setCoverHeight] = useState<number>(330);
-  const queryClient = useQueryClient();
 
   const updateTbodyHight = () => {
     if (tbodyRef.current) {
@@ -58,13 +55,6 @@ function Calendar({
       if (tbody) {
         setCoverHeight(tbody.offsetHeight);
       }
-    }
-  };
-
-  //프리패칭
-  const handleOnHoverPrefetchDiary = (diaryId: string) => {
-    if (user) {
-      queryClient.prefetchQuery({ queryKey: ['diaries', diaryId], queryFn: () => fetchDiary(diaryId) });
     }
   };
 
@@ -247,7 +237,6 @@ function Calendar({
                 onClick={() => {
                   route.push(`/diaries/${diaries.diaryId}?form=calendar&YYMM=${searchParams.get('YYMM')}`);
                 }}
-                onMouseEnter={() => handleOnHoverPrefetchDiary(diaries.diaryId)}
                 className="flex flex-col items-center cursor-pointer"
               >
                 <Stamp petal={diaries.color} circle="#F7CA87" month={month.getMonth() + 1} />

@@ -1,12 +1,11 @@
 'use client';
 
-import { fetchDiary } from '@/apis/diary';
 import { useModal } from '@/providers/modal.context';
 import { useToast } from '@/providers/toast.context';
 import useZustandStore from '@/zustand/zustandStore';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Button from '../common/Button';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -25,6 +24,7 @@ import XIconBlack from './assets/XIconBlack';
 import TipBubble from './assets/TipBubble';
 import { fetchStickers, saveStickers } from '@/apis/stickers';
 import { DiaryContainerProps } from '@/types/diary.type';
+import useDiaries from '@/hooks/useDiaries';
 
 type StickerType = {
   id: string;
@@ -43,6 +43,9 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
 
   const toast = useToast();
   const modal = useModal();
+
+  const year = Number(YYMM?.slice(0, 4));
+  const month = Number(YYMM?.slice(4, 6));
 
   const queryClient = useQueryClient();
 
@@ -64,15 +67,8 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
     );
   };
 
-  const {
-    data: diary,
-    error: diaryError,
-    isPending: isQueryLoading
-  } = useQuery({
-    queryKey: ['diaries', diaryId],
-    queryFn: () => fetchDiary(diaryId),
-    initialData: () => queryClient.getQueryData(['diaries', diaryId])
-  });
+  const { diaries, isDiariesPending, diariesError } = useDiaries(year, month);
+  const diary = diaries?.find((diary) => diary.diaryId === diaryId);
 
   const {
     data: queryStickers,
@@ -94,8 +90,8 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
       await axios.delete(`/api/diaries/${diaryId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['diaries'] });
-      queryClient.invalidateQueries({ queryKey: ['diaries', diaryId] });
+      queryClient.invalidateQueries({ queryKey: ['diaries', year, month] });
+
       toast.on({ label: '다이어리가 삭제되었습니다' });
 
       router.replace(`/?form=${form}&YYMM=${YYMM}`);
@@ -133,7 +129,7 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
     saveStickersMutation.mutate({ stickersToSave, diaryId });
   };
 
-  if (isQueryLoading || isStickersQueryLoading) {
+  if (isDiariesPending || isStickersQueryLoading) {
     return (
       <div>
         <LoadingSpinner />
@@ -143,7 +139,7 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
 
   const diaryData = diary;
 
-  if (diaryError) {
+  if (diariesError) {
     return <p className="flex justify-center items-center h-screen">본인이 쓴 글이 아님</p>;
   }
   if (stickerError) {

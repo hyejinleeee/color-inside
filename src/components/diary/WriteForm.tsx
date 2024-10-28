@@ -16,7 +16,7 @@ import {
 } from '@/utils/diaryLocalStorage';
 import { compressImageFile, urlToFile } from '@/utils/imageFileUtils';
 import useZustandStore from '@/zustand/zustandStore';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
@@ -45,6 +45,11 @@ const WriteForm = () => {
 
   const form = searchParams.get('form');
   const YYMM = searchParams.get('YYMM');
+
+  const year = Number(YYMM?.slice(0, 4));
+  const month = Number(YYMM?.slice(4, 6));
+
+  const queryClient = useQueryClient();
 
   const { color, tags, content, img, isDiaryEditMode, setIsDiaryEditMode, hasTestResult, setHasTestResult } =
     useZustandStore((state: tZustandStore) => ({
@@ -124,7 +129,7 @@ const WriteForm = () => {
     },
     onSuccess: () => {
       toast.on({ label: isDiaryEditMode ? '나의 감정이 수정되었어요.' : '나의 감정이 기록되었어요.' });
-
+      queryClient.invalidateQueries({ queryKey: ['diaries', year, month] });
       if (hasTestResult) router.replace('/');
       else router.replace(`/?form=${form}&YYMM=${YYMM}`);
 

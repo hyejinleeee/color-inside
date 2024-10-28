@@ -1,11 +1,9 @@
 'use client';
 
-import { Diary } from '@/types/diary.type';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
 import Image from 'next/image';
 import { useState } from 'react';
 import LoadingSpinner from '../common/LoadingSpinner';
+import useDiaries from '@/hooks/useDiaries';
 
 const EmotionChart = () => {
   const today = new Date();
@@ -23,16 +21,10 @@ const EmotionChart = () => {
     setMonth(changeMonth);
   };
 
-  const { data: diaries = [], isPending } = useQuery({
-    queryKey: ['statisticsDiary', year, month],
-    queryFn: async () => {
-      const response = await axios.get<Diary[]>(`/api/diaries?year=${year}&month=${month}`);
-      const diaries = response.data;
-      return diaries;
-    }
-  });
+  const { diaries, isDiariesPending } = useDiaries(year, month);
+  if (!diaries) return;
 
-  if (isPending) {
+  if (isDiariesPending) {
     return <LoadingSpinner />;
   }
 

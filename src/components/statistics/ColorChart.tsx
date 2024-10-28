@@ -2,12 +2,11 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { ChartConfig, ChartContainer } from '@/components/ui/chart';
-import { Diary } from '@/types/diary.type';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
 import Image from 'next/image';
 import { useState } from 'react';
 import { Pie, PieChart } from 'recharts';
+import LoadingSpinner from '../common/LoadingSpinner';
+import useDiaries from '@/hooks/useDiaries';
 
 const ColorChart = () => {
   const today = new Date();
@@ -26,14 +25,12 @@ const ColorChart = () => {
     setMonth(changeMonth);
   };
 
-  const { data: diaries = [] } = useQuery({
-    queryKey: ['statisticsDiary', year, month],
-    queryFn: async () => {
-      const response = await axios.get<Diary[]>(`/api/diaries?year=${year}&month=${month}`);
-      const diaries = response.data;
-      return diaries;
-    }
-  });
+  const { diaries, isDiariesPending } = useDiaries(year, month);
+  if (!diaries) return;
+
+  if (isDiariesPending) {
+    return <LoadingSpinner />;
+  }
 
   const length = diaries.length;
   const allColors = diaries.flatMap((entry) => entry.color);

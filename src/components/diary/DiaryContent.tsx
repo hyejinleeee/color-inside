@@ -31,8 +31,9 @@ const DiaryContent = ({ diary }: { diary: Diary }) => {
               height={200}
               className="object-cover"
               placeholder="blur"
-              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVR42mN8//HLfwYiAOOoQvoqBABbWyZJf74GZgAAAABJRU5ErkJggg=="
+              blurDataURL={diary.img}
               priority={true}
+              loading="eager"
             />
           </div>
         ) : (
