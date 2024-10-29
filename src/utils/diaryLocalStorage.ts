@@ -90,6 +90,16 @@ export const fetchLocalDiaries = (): Diary[] => {
   return savedDiaries;
 };
 
+export const fetchLocalDiariesByDate = (year: number, month: number): Diary[] => {
+  const savedDiaries = JSON.parse(localStorage.getItem('localDiaries') || '[]') as Diary[];
+  const localList = savedDiaries.filter((diary: Diary) => {
+    const diaryYear = new Date(diary.date).getFullYear();
+    const diaryMonth = new Date(diary.date).getMonth() + 1;
+    return diaryMonth === month && diaryYear === year;
+  });
+  return localList;
+};
+
 export const clearLocalDiaries = (): void => {
   localStorage.removeItem('localDiaries');
 };

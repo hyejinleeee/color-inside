@@ -21,7 +21,7 @@ const EmotionChart = () => {
     setMonth(changeMonth);
   };
 
-  const { diaries, isDiariesPending } = useDiaries(year, month);
+  const { diaries, isDiariesPending } = useDiaries(year, month, true);
   if (!diaries) return;
 
   if (isDiariesPending) {

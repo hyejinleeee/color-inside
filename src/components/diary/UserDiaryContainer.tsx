@@ -5,7 +5,7 @@ import { useToast } from '@/providers/toast.context';
 import useZustandStore from '@/zustand/zustandStore';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Button from '../common/Button';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -67,7 +67,7 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
     );
   };
 
-  const { diaries, isDiariesPending, diariesError } = useDiaries(year, month);
+  const { diaries, isDiariesPending, diariesError } = useDiaries(year, month, true);
   const diary = diaries?.find((diary) => diary.diaryId === diaryId);
 
   const {

@@ -22,7 +22,7 @@ import useDiaries from '@/hooks/useDiaries';
 const MainSection = () => {
   const today = new Date();
   const router = useRouter();
-  const { user, isPending } = useAuth();
+  const { user } = useAuth();
   const getInitialValue = useGetInitialValue();
   const { queryString, makeQueryString } = useMakeQueryString();
   const [date, setDate] = useState<Date>(getInitialValue('date') as Date);
@@ -48,19 +48,10 @@ const MainSection = () => {
     }
   };
 
-  const { diaries, isDiariesPending } = useDiaries(year, month);
-
-  const data = JSON.parse(localStorage.getItem('localDiaries') || '[]');
-  const localList = data.filter((diary: Diary) => {
-    const diaryYear = new Date(diary.date).getFullYear();
-    const diaryMonth = new Date(diary.date).getMonth() + 1;
-    return diaryMonth === month && diaryYear === year;
-  });
-
-  const diaryList = user ? diaries : localList;
+  const { diaries: diaryList, isDiariesPending: isDiariesLoading } = useDiaries(year, month, !!user);
 
   useEffect(() => {
-    checkTodayWritten(diaryList);
+    if (diaryList) checkTodayWritten(diaryList);
   }, [diaryList]);
 
   useEffect(() => {
@@ -131,7 +122,7 @@ const MainSection = () => {
               diaryList={diaryList || []}
               handleInputDate={handleInputDate}
               isCalendar={form === 'calendar'}
-              isLoading={isDiariesPending}
+              isLoading={isDiariesLoading}
               month={date}
               onMonthChange={setDate}
             />
