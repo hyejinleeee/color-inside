@@ -40,13 +40,10 @@ type StickerDataType = {
 
 const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM }) => {
   const router = useRouter();
-
   const toast = useToast();
   const modal = useModal();
-
   const year = Number(YYMM?.slice(0, 4));
   const month = Number(YYMM?.slice(4, 6));
-
   const queryClient = useQueryClient();
 
   const { setColor, setTags, setContent, setImg, setIsDiaryEditMode } = useZustandStore();
@@ -54,18 +51,6 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
   const [isPickerVisible, setIsPickerVisible] = useState<boolean>(false);
   const [isTipVisible, setIsTipVisible] = useState(true);
   const [isDeleteVisible, setIsDeleteVisible] = useState(false);
-
-  const handleStickerSelect = (sticker: Omit<StickerType, 'position'>) => {
-    setStickers([...stickers, { ...sticker, id: uuidv4(), position: { x: 130, y: 160 } }]);
-
-    setIsPickerVisible(false);
-  };
-
-  const handlePositionChange = (id: string, position: { x: number; y: number }) => {
-    setStickers((prevStickers) =>
-      prevStickers.map((sticker) => (sticker.id === id ? { ...sticker, position } : sticker))
-    );
-  };
 
   const { diaries, isDiariesPending, diariesError } = useDiaries(year, month, true);
   const diary = diaries?.find((diary) => diary.diaryId === diaryId);
@@ -84,6 +69,18 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
       setStickers(queryStickers);
     }
   }, [queryStickers]);
+
+  const handleStickerSelect = (sticker: Omit<StickerType, 'position'>) => {
+    setStickers([...stickers, { ...sticker, id: uuidv4(), position: { x: 130, y: 160 } }]);
+
+    setIsPickerVisible(false);
+  };
+
+  const handlePositionChange = (id: string, position: { x: number; y: number }) => {
+    setStickers((prevStickers) =>
+      prevStickers.map((sticker) => (sticker.id === id ? { ...sticker, position } : sticker))
+    );
+  };
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -129,14 +126,6 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
     saveStickersMutation.mutate({ stickersToSave, diaryId });
   };
 
-  if (isDiariesPending || isStickersQueryLoading) {
-    return (
-      <div>
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
   const diaryData = diary;
 
   if (diariesError) {
@@ -148,6 +137,13 @@ const UserDiaryContainer: React.FC<DiaryContainerProps> = ({ diaryId, form, YYMM
 
   if (!diaryData) {
     return <p className="flex justify-center items-center h-screen">No diary found</p>;
+  }
+  if (isDiariesPending || isStickersQueryLoading) {
+    return (
+      <div>
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   const handleBackward = () => {

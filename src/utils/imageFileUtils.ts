@@ -42,16 +42,15 @@ export const convertHeicToJpeg = async (lastDroppedFile: File) => {
 export const compressImageFile = async (file: File): Promise<File | null> => {
   // 이미지 압축 옵션
   const options = {
-    maxSizeMB: 1, // 최대 크기 (MB) - 500KB
+    maxSizeMB: 1, // 최대 크기 (MB)
     maxWidthOrHeight: 360, // 최대 너비 또는 높이
-    useWebWorker: true // 웹 워커 사용 여부
+    useWebWorker: true
   };
   try {
-    // 이미지 압축
     const compressedFile = await imageCompression(file, options);
-    return compressedFile; // 압축된 파일 반환
+    return compressedFile;
   } catch (error) {
     console.error('Image compression error:', error);
-    return null; // 오류 발생 시 null 반환
+    return null;
   }
 };
