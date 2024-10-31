@@ -30,6 +30,7 @@ import AngleRightGreen from './assets/AngleRightGreen';
 import BackArrowIcon from './assets/BackArrowIcon';
 import PencilIcon from './assets/PencilIcon ';
 import XIconWhite from './assets/XIconWhite';
+import { debounce } from 'lodash';
 
 const WriteForm = () => {
   const router = useRouter();
@@ -240,6 +241,14 @@ const WriteForm = () => {
     });
   };
 
+  const debouncedHandleWrite = debounce((e: FormEvent<HTMLFormElement>) => {
+    handleWrite(e);
+  }, 300);
+
+  const debouncedHandleEdit = debounce((e: FormEvent<HTMLFormElement>) => {
+    handleEdit(e);
+  }, 300);
+
   if (isLoading) {
     return (
       <div>
@@ -248,9 +257,18 @@ const WriteForm = () => {
     );
   }
 
+  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+    e.preventDefault();
+    if (isDiaryEditMode) {
+      debouncedHandleEdit(e);
+    } else {
+      debouncedHandleWrite(e);
+    }
+  };
+
   return (
     <>
-      <form className="block md:hidden" onSubmit={(e) => (isDiaryEditMode ? handleEdit(e) : handleWrite(e))}>
+      <form className="block md:hidden" onSubmit={handleSubmit}>
         <div className="flex flex-col items-center justify-center py-48px-col-m">
           <div className="flex flex-col gap-24px-col-m md:gap-24px-col w-335px-row-m">
             <ColorPicker />
@@ -273,7 +291,7 @@ const WriteForm = () => {
           </div>
         </div>
       </form>
-      <form className="hidden md:block" onSubmit={(e) => (isDiaryEditMode ? handleEdit(e) : handleWrite(e))}>
+      <form className="hidden md:block" onSubmit={handleSubmit}>
         <div className="flex items-center justify-center h-screen">
           <div className="w-744px-row h-807px-col px-72px-row pb-72px-col pt-40px-col rounded-[32px] flex flex-col items-center justify-center bg-[#FBF8F4] border-4 border-[#E6D3BC]">
             <div className="flex flex-col gap-16px-row">

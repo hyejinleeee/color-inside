@@ -6,8 +6,8 @@ import { ToastProvider } from '@/providers/toast.context';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
-import ChannelTalk from '@/components/common/ChannelTalk';
 import Landing from '@/components/common/Landing';
+import ChannelTalk from '@/components/common/ChannelTalk';
 
 export const metadata: Metadata = {
   title: 'Color Inside',

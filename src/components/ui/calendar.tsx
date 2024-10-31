@@ -20,6 +20,7 @@ import Stamp from '../main/Stamp';
 import PrevYearIcon from '../main/assets/PrevYearIcon';
 import NextYearIcon from '../main/assets/NextYearIcon';
 import CloseIcon from '../main/assets/CloseIcon';
+import Link from 'next/link';
 
 export type CalendarProps = ComponentProps<typeof DayPicker> & {
   diaryList: DiaryList;
@@ -233,15 +234,13 @@ function Calendar({
             }, []);
 
             return diaries ? (
-              <div
-                onClick={() => {
-                  route.push(`/diaries/${diaries.diaryId}?form=calendar&YYMM=${searchParams.get('YYMM')}`);
-                }}
-                className="flex flex-col items-center cursor-pointer"
+              <Link
+                href={`/diaries/${diaries.diaryId}?form=calendar&YYMM=${searchParams.get('YYMM')}`}
+                className="flex flex-col items-center"
               >
                 <Stamp petal={diaries.color} circle="#F7CA87" month={month.getMonth() + 1} />
                 <p className="text-12px-m md:text-14px mt-1">{props.date.getDate()}</p>
-              </div>
+              </Link>
             ) : (
               <div
                 onClick={() => {
