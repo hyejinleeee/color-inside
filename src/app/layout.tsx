@@ -27,6 +27,7 @@ const pretendard = localFont({
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head></head>
       <body className={`${pretendard.variable} font-pretendard`}>
         <QueryProvider>
           <ToastProvider>

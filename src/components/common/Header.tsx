@@ -1,6 +1,5 @@
 'use client';
 
-import useAuth from '@/hooks/useAuth';
 import useZustandStore from '@/zustand/zustandStore';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
@@ -19,20 +18,17 @@ const Header = () => {
   const pathname = usePathname();
   const router = useRouter();
 
-  const { user, isPending } = useAuth();
-
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
 
   const { setIsDiaryEditMode, setHasTestResult } = useZustandStore();
 
-  const { data: userData } = useQuery({
+  const { data: userData, isPending } = useQuery({
     queryKey: ['information'],
     queryFn: async () => {
       const { data } = await axios.get('/api/auth/me/information');
-      return data[0];
-    },
-    enabled: !isPending
+      return data ? data[0] : null;
+    }
   });
 
   useEffect(() => {
@@ -92,7 +88,7 @@ const Header = () => {
         <button onClick={toggleMusic} className="w-6 h-6">
           {isPlaying ? <MusicOnIcon /> : <MusicOffIcon />}
         </button>
-        {!isPending && user ? (
+        {!isPending && userData ? (
           <Link href={'/my-page'} onClick={handleClick}>
             <div className="relative md:w-10 md:h-10 w-6 h-6 aspect-square">
               <Image

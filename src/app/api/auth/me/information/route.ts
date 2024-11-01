@@ -29,7 +29,7 @@ export const GET = async (): Promise<NextResponse> => {
 
       return NextResponse.json(data, { status: 200 });
     } else {
-      return NextResponse.json({ nickname: null, profileImg: null }, { status: 500 });
+      return NextResponse.json(null, { status: 200 });
     }
   } catch (error) {
     console.error('Unexpected Error:', error);

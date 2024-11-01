@@ -237,6 +237,7 @@ function Calendar({
               <Link
                 href={`/diaries/${diaries.diaryId}?form=calendar&YYMM=${searchParams.get('YYMM')}`}
                 className="flex flex-col items-center"
+                prefetch={true}
               >
                 <Stamp petal={diaries.color} circle="#F7CA87" month={month.getMonth() + 1} />
                 <p className="text-12px-m md:text-14px mt-1">{props.date.getDate()}</p>
